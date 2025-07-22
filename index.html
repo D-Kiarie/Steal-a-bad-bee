@@ -188,7 +188,7 @@
         }
 
         li::before {
-            content: "�";
+            content: "🐝";
             position: absolute;
             left: 0;
             top: 0;
@@ -211,8 +211,11 @@
         
         .game-thumbnail {
             width: 100%;
+            height: auto;
+            min-height: 175px; /* prevent layout shift while loading */
             border-radius: 8px;
             margin-bottom: 20px;
+            background-color: var(--bg-light);
         }
 
         .stats-grid {
@@ -292,7 +295,7 @@
             <div class="content-grid">
                 <div class="content-card game-stats-card">
                     <h3>🎮 Live Game Stats</h3>
-                    <img id="gameThumbnail" src="https://placehold.co/768x432/1e1e1e/e0e0e0?text=Loading..." alt="Game Thumbnail" class="game-thumbnail">
+                    <img id="gameThumbnail" src="https://placehold.co/512x512/1e1e1e/e0e0e0?text=Loading..." alt="Game Thumbnail" class="game-thumbnail">
                     <div id="statsContainer" class="loader">Fetching latest stats...</div>
                 </div>
 
@@ -364,71 +367,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const universeId = '3621941657';
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-
-            const urls = {
-                gameDetails: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${universeId}`)}`,
-                favorites: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games/${universeId}/favorites/count`)}`,
-                votes: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games/votes?universeIds=${universeId}`)}`,
-                thumbnail: `${proxyUrl}${encodeURIComponent(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)}`
-            };
+            // Your new, reliable API endpoint
+            const apiUrl = 'https://gooner-bot-unified.onrender.com/api/game-stats';
 
             const statsContainer = document.getElementById('statsContainer');
             const gameThumbnail = document.getElementById('gameThumbnail');
 
             async function fetchRobloxData() {
                 try {
-                    const responses = await Promise.all([
-                        fetch(urls.gameDetails),
-                        fetch(urls.favorites),
-                        fetch(urls.votes),
-                        fetch(urls.thumbnail)
-                    ]);
+                    const response = await fetch(apiUrl);
 
-                    for (const res of responses) {
-                        if (!res.ok) {
-                            throw new Error(`Network response was not ok. Status: ${res.status}`);
-                        }
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                     }
-
-                    const [gameDetailsData, favoritesData, votesData, thumbnailDataData] = await Promise.all(responses.map(res => res.json()));
-
-                    const gameDetails = JSON.parse(gameDetailsData.contents);
-                    const favorites = JSON.parse(favoritesData.contents);
-                    const votes = JSON.parse(votesData.contents);
-                    const thumbnailData = JSON.parse(thumbnailDataData.contents);
-
-                    const gameData = gameDetails && gameDetails.data && gameDetails.data[0];
-                    const voteData = votes && votes.data && votes.data[0];
-                    const favoritesCount = favorites && favorites.favoritesCount;
-                    const thumbnail = thumbnailData && thumbnailData.data && thumbnailData.data[0] && thumbnailData.data[0].thumbnails && thumbnailData.data[0].thumbnails[0] && thumbnailData.data[0].thumbnails[0].imageUrl;
                     
-                    if (!gameData || !voteData || !thumbnail || favoritesCount === undefined) {
-                        throw new Error('Failed to parse data from Roblox API response.');
-                    }
+                    const data = await response.json();
 
-                    displayStats(gameData, favoritesCount, voteData, thumbnail);
+                    displayStats(data);
 
                 } catch (error) {
-                    statsContainer.innerHTML = 'Failed to load game stats. The API proxy may be temporarily down.';
+                    statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up.';
                     console.error('Error fetching Roblox data:', error);
                 }
             }
 
-            function displayStats(game, favorites, votes, thumbnail) {
-                // The proxy for thumbnails doesn't work well, so we use a direct roproxy link for the image itself
-                gameThumbnail.src = `https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`;
+            function displayStats(stats) {
+                // Set the thumbnail from the API data
+                if (stats.thumbnailUrl) {
+                    gameThumbnail.src = stats.thumbnailUrl;
+                }
                 
-                // A little trick to get the actual image URL without CORS issues for the image tag
-                fetch(`https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
-                    .then(res => res.json())
-                    .then(data => {
-                        const imageUrl = data.data[0].thumbnails[0].imageUrl;
-                        if(imageUrl) gameThumbnail.src = imageUrl;
-                    }).catch(err => console.error("Could not fetch thumbnail directly, using placeholder.", err));
-
-
                 const formatNumber = (num) => {
                     if (num === null || num === undefined) return 'N/A';
                     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -439,19 +408,19 @@
                 statsContainer.innerHTML = `
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="value">${formatNumber(game.playing)}</div>
+                            <div class="value">${formatNumber(stats.playing)}</div>
                             <div class="label">Playing Now</div>
                         </div>
                         <div class="stat-item">
-                            <div class="value">${formatNumber(game.visits)}</div>
-                            <div class.label">Total Visits</div>
+                            <div class="value">${formatNumber(stats.visits)}</div>
+                            <div class="label">Total Visits</div>
                         </div>
                         <div class="stat-item">
-                            <div class="value" style="color: var(--success-color);">${formatNumber(votes.upVotes)}</div>
+                            <div class="value" style="color: var(--success-color);">${formatNumber(stats.upVotes)}</div>
                             <div class="label">👍 Likes</div>
                         </div>
                         <div class="stat-item">
-                            <div class="value">${formatNumber(favorites)}</div>
+                            <div class="value">${formatNumber(stats.favoritesCount)}</div>
                             <div class="label">⭐ Favorites</div>
                         </div>
                     </div>
@@ -463,4 +432,3 @@
     </script>
 </body>
 </html>
-�
