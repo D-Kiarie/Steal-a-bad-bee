@@ -188,7 +188,7 @@
         }
 
         li::before {
-            content: "🐝";
+            content: "�";
             position: absolute;
             left: 0;
             top: 0;
@@ -354,7 +354,8 @@
     <header>
         <nav>
             <div class="logo">
-                <span>🐝 Steal a Bad Bee</span>
+                <img id="headerIcon" src="" alt="SABB Icon" style="width: 32px; height: 32px; border-radius: 6px; margin-right: 10px;"/>
+                <span>SABB</span>
             </div>
             <div class="nav-links">
                 <a href="#home">Home</a>
@@ -445,6 +446,7 @@
             const statsContainer = document.getElementById('statsContainer');
             const slideshowContainer = document.getElementById('slideshow');
             const gameIconEl = document.getElementById('gameIcon');
+            const headerIconEl = document.getElementById('headerIcon');
             const gameNameEl = document.getElementById('gameName');
             const badgesContainer = document.getElementById('badges-container');
 
@@ -500,7 +502,10 @@
             };
 
             function handleFirstLoad(stats) {
-                if(stats.iconUrl) gameIconEl.src = stats.iconUrl;
+                if(stats.iconUrl) {
+                    gameIconEl.src = stats.iconUrl;
+                    headerIconEl.src = stats.iconUrl;
+                }
                 if(stats.name) gameNameEl.textContent = stats.name;
 
                 statsContainer.innerHTML = `
@@ -625,3 +630,4 @@
     </script>
 </body>
 </html>
+�
