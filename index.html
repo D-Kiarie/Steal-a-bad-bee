@@ -188,7 +188,7 @@
         }
 
         li::before {
-            content: "🐝";
+            content: "�";
             position: absolute;
             left: 0;
             top: 0;
@@ -365,29 +365,39 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const universeId = '3621941657';
-            // Using a public CORS proxy that is more likely to work from any domain
-            const corsProxy = 'https://cors-anywhere.herokuapp.com/';
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
+
+            const urls = {
+                gameDetails: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games?universeIds=${universeId}`)}`,
+                favorites: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games/${universeId}/favorites/count`)}`,
+                votes: `${proxyUrl}${encodeURIComponent(`https://games.roblox.com/v1/games/votes?universeIds=${universeId}`)}`,
+                thumbnail: `${proxyUrl}${encodeURIComponent(`https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)}`
+            };
 
             const statsContainer = document.getElementById('statsContainer');
             const gameThumbnail = document.getElementById('gameThumbnail');
 
             async function fetchRobloxData() {
                 try {
-                    const [gameDetailsRes, favoritesRes, votesRes, thumbnailRes] = await Promise.all([
-                        fetch(`${corsProxy}https://games.roblox.com/v1/games?universeIds=${universeId}`),
-                        fetch(`${corsProxy}https://games.roblox.com/v1/games/${universeId}/favorites/count`),
-                        fetch(`${corsProxy}https://games.roblox.com/v1/games/votes?universeIds=${universeId}`),
-                        fetch(`${corsProxy}https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
+                    const responses = await Promise.all([
+                        fetch(urls.gameDetails),
+                        fetch(urls.favorites),
+                        fetch(urls.votes),
+                        fetch(urls.thumbnail)
                     ]);
 
-                    if (!gameDetailsRes.ok || !favoritesRes.ok || !votesRes.ok || !thumbnailRes.ok) {
-                        throw new Error('Network response was not ok for one or more API calls.');
+                    for (const res of responses) {
+                        if (!res.ok) {
+                            throw new Error(`Network response was not ok. Status: ${res.status}`);
+                        }
                     }
-                    
-                    const gameDetails = await gameDetailsRes.json();
-                    const favorites = await favoritesRes.json();
-                    const votes = await votesRes.json();
-                    const thumbnailData = await thumbnailRes.json();
+
+                    const [gameDetailsData, favoritesData, votesData, thumbnailDataData] = await Promise.all(responses.map(res => res.json()));
+
+                    const gameDetails = JSON.parse(gameDetailsData.contents);
+                    const favorites = JSON.parse(favoritesData.contents);
+                    const votes = JSON.parse(votesData.contents);
+                    const thumbnailData = JSON.parse(thumbnailDataData.contents);
 
                     const gameData = gameDetails && gameDetails.data && gameDetails.data[0];
                     const voteData = votes && votes.data && votes.data[0];
@@ -401,14 +411,24 @@
                     displayStats(gameData, favoritesCount, voteData, thumbnail);
 
                 } catch (error) {
-                    statsContainer.innerHTML = 'Failed to load game stats. Please try again later.';
+                    statsContainer.innerHTML = 'Failed to load game stats. The API proxy may be temporarily down.';
                     console.error('Error fetching Roblox data:', error);
                 }
             }
 
             function displayStats(game, favorites, votes, thumbnail) {
-                gameThumbnail.src = thumbnail;
+                // The proxy for thumbnails doesn't work well, so we use a direct roproxy link for the image itself
+                gameThumbnail.src = `https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`;
                 
+                // A little trick to get the actual image URL without CORS issues for the image tag
+                fetch(`https://thumbnails.roproxy.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const imageUrl = data.data[0].thumbnails[0].imageUrl;
+                        if(imageUrl) gameThumbnail.src = imageUrl;
+                    }).catch(err => console.error("Could not fetch thumbnail directly, using placeholder.", err));
+
+
                 const formatNumber = (num) => {
                     if (num === null || num === undefined) return 'N/A';
                     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -424,7 +444,7 @@
                         </div>
                         <div class="stat-item">
                             <div class="value">${formatNumber(game.visits)}</div>
-                            <div class="label">Total Visits</div>
+                            <div class.label">Total Visits</div>
                         </div>
                         <div class="stat-item">
                             <div class="value" style="color: var(--success-color);">${formatNumber(votes.upVotes)}</div>
@@ -443,3 +463,4 @@
     </script>
 </body>
 </html>
+�
