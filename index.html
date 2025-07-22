@@ -204,7 +204,7 @@
             font-style: italic;
         }
         
-        .game-stats-card {
+        .game-stats-card, .badges-card {
             background-color: var(--bg-lighter);
             text-align: center;
         }
@@ -290,6 +290,46 @@
             color: var(--accent-yellow);
         }
 
+        /* Badge Styles */
+        #badges-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .badge-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--bg-light);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .badge-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+        }
+        
+        .badge-info {
+            flex-grow: 1;
+        }
+        
+        .badge-info .name {
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        
+        .badge-info .awarded {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
         footer {
             text-align: center;
             margin-top: 40px;
@@ -346,6 +386,12 @@
                     <div id="statsContainer" class="loader">Fetching latest stats...</div>
                 </div>
 
+                <!-- New Badges Card -->
+                <div class="content-card badges-card">
+                    <h3>🏆 Badges & Achievements</h3>
+                    <div id="badges-container" class="loader">Fetching badges...</div>
+                </div>
+
                 <div class="content-card" id="updates">
                     <h3>🗺️ Map & World Events</h3>
                     <ul>
@@ -385,24 +431,6 @@
                         <li>Implement guild/clan system with shared goals</li>
                     </ul>
                 </div>
-
-                <div class="content-card">
-                    <h3>🎨 Visual & Audio</h3>
-                    <ul>
-                        <li>Create a New Thumbnail with updated branding</li>
-                        <li>Add New Background Music for different biomes</li>
-                        <li>Implement particle effects for special bees</li>
-                    </ul>
-                </div>
-
-                <div class="content-card">
-                    <h3>🤖 Discord Integration</h3>
-                    <ul>
-                        <li>Add Bot Command for Top 100 Honey Leaderboard (Paginated)</li>
-                        <li>Implement role rewards for in-game achievements</li>
-                        <li>Create announcement system for updates</li>
-                    </ul>
-                </div>
             </div>
         </main>
     </div>
@@ -420,6 +448,7 @@
             const slideshowContainer = document.getElementById('slideshow');
             const gameIconEl = document.getElementById('gameIcon');
             const gameNameEl = document.getElementById('gameName');
+            const badgesContainer = document.getElementById('badges-container');
 
             let slideInterval;
             let isFirstLoad = true;
@@ -434,6 +463,7 @@
                     }
                     const data = await response.json();
                     displayStats(data);
+                    displayBadges(data.badges);
                 } catch (error) {
                     statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up or offline.';
                     console.error('Error fetching Roblox data:', error);
@@ -456,7 +486,7 @@
                     if (progress < 1) {
                         window.requestAnimationFrame(step);
                     } else {
-                        element.innerHTML = formatNumber(end); // Ensure it ends on the exact value
+                        element.innerHTML = formatNumber(end);
                     }
                 };
                 window.requestAnimationFrame(step);
@@ -490,9 +520,7 @@
                     if (stats.thumbnailUrls && stats.thumbnailUrls.length > 0) {
                         setupSlideshow(stats.thumbnailUrls);
                     }
-                    isFirstLoad = false;
                 } else {
-                    // Animate the values on subsequent updates
                     animateValue(document.getElementById('playing-value'), previousStats.playing, stats.playing, 1000);
                     animateValue(document.getElementById('visits-value'), previousStats.visits, stats.visits, 1000);
                     animateValue(document.getElementById('likes-value'), previousStats.upVotes, stats.upVotes, 1000);
@@ -500,6 +528,41 @@
                 }
                 
                 previousStats = stats;
+            }
+            
+            function displayBadges(badges) {
+                if (!badges) return;
+
+                if (isFirstLoad) {
+                    badgesContainer.innerHTML = ''; // Clear loader
+                    if (badges.length === 0) {
+                        badgesContainer.textContent = 'No badges found for this game.';
+                        return;
+                    }
+                    badges.forEach(badge => {
+                        const badgeEl = document.createElement('div');
+                        badgeEl.className = 'badge-item';
+                        badgeEl.innerHTML = `
+                            <img src="${badge.iconImageUrl}" alt="${badge.name}">
+                            <div class="badge-info">
+                                <div class="name">${badge.name}</div>
+                                <div class="awarded">
+                                    Awarded: <span class="badge-awarded-count" id="badge-count-${badge.id}">${formatNumber(badge.awardedCount)}</span>
+                                </div>
+                            </div>
+                        `;
+                        badgesContainer.appendChild(badgeEl);
+                    });
+                } else {
+                    // Update counts on subsequent loads
+                    badges.forEach(badge => {
+                        const countEl = document.getElementById(`badge-count-${badge.id}`);
+                        const prevBadge = previousStats.badges.find(b => b.id === badge.id);
+                        if (countEl && prevBadge) {
+                            animateValue(countEl, prevBadge.awardedCount, badge.awardedCount, 1000);
+                        }
+                    });
+                }
             }
 
             function setupSlideshow(urls) {
@@ -553,7 +616,6 @@
                 slideInterval = setInterval(next, 4000);
             }
 
-            // Fetch data immediately on load, then set an interval to fetch it every 5 seconds
             fetchRobloxData();
             setInterval(fetchRobloxData, 5000);
         });
