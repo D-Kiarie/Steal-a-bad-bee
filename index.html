@@ -379,14 +379,12 @@
                 <div class="content-card game-stats-card">
                     <h3><img id="gameIcon" src="" alt="icon" style="width: 48px; height: 48px; border-radius: 8px;"/> <span id="gameName">Live Game Stats</span></h3>
                     <div id="slideshow" class="slideshow-container">
-                        <!-- Slides will be injected by JS -->
                         <button id="prev-slide" class="slide-btn">❮</button>
                         <button id="next-slide" class="slide-btn">❯</button>
                     </div>
                     <div id="statsContainer" class="loader">Fetching latest stats...</div>
                 </div>
 
-                <!-- New Badges Card -->
                 <div class="content-card badges-card">
                     <h3>🏆 Badges & Achievements</h3>
                     <div id="badges-container" class="loader">Fetching badges...</div>
@@ -462,10 +460,19 @@
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                     }
                     const data = await response.json();
-                    displayStats(data);
-                    displayBadges(data.badges);
+                    
+                    if (isFirstLoad) {
+                        handleFirstLoad(data);
+                        isFirstLoad = false;
+                    } else {
+                        updateData(data);
+                    }
+                    previousStats = data;
+
                 } catch (error) {
-                    statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up or offline.';
+                    if (isFirstLoad) {
+                        statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up or offline.';
+                    }
                     console.error('Error fetching Roblox data:', error);
                 }
             }
@@ -476,7 +483,7 @@
             };
 
             const animateValue = (element, start, end, duration) => {
-                if (start === end) return;
+                if (start === end || !element) return;
                 let startTimestamp = null;
                 const step = (timestamp) => {
                     if (!startTimestamp) startTimestamp = timestamp;
@@ -492,58 +499,46 @@
                 window.requestAnimationFrame(step);
             };
 
-            function displayStats(stats) {
+            function handleFirstLoad(stats) {
                 if(stats.iconUrl) gameIconEl.src = stats.iconUrl;
                 if(stats.name) gameNameEl.textContent = stats.name;
 
-                if (isFirstLoad) {
-                    statsContainer.innerHTML = `
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <div class="value" id="playing-value">${formatNumber(stats.playing)}</div>
-                                <div class="label">Playing Now</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="value" id="visits-value">${formatNumber(stats.visits)}</div>
-                                <div class="label">Total Visits</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="value" id="likes-value" style="color: var(--success-color);">${formatNumber(stats.upVotes)}</div>
-                                <div class="label">👍 Likes</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="value" id="favorites-value">${formatNumber(stats.favoritesCount)}</div>
-                                <div class="label">⭐ Favorites</div>
-                            </div>
+                statsContainer.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="value" id="playing-value">${formatNumber(stats.playing)}</div>
+                            <div class="label">Playing Now</div>
                         </div>
-                    `;
-                    if (stats.thumbnailUrls && stats.thumbnailUrls.length > 0) {
-                        setupSlideshow(stats.thumbnailUrls);
-                    }
-                } else {
-                    animateValue(document.getElementById('playing-value'), previousStats.playing, stats.playing, 1000);
-                    animateValue(document.getElementById('visits-value'), previousStats.visits, stats.visits, 1000);
-                    animateValue(document.getElementById('likes-value'), previousStats.upVotes, stats.upVotes, 1000);
-                    animateValue(document.getElementById('favorites-value'), previousStats.favoritesCount, stats.favoritesCount, 1000);
-                }
+                        <div class="stat-item">
+                            <div class="value" id="visits-value">${formatNumber(stats.visits)}</div>
+                            <div class="label">Total Visits</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value" id="likes-value" style="color: var(--success-color);">${formatNumber(stats.upVotes)}</div>
+                            <div class="label">👍 Likes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value" id="favorites-value">${formatNumber(stats.favoritesCount)}</div>
+                            <div class="label">⭐ Favorites</div>
+                        </div>
+                    </div>
+                `;
                 
-                previousStats = stats;
-            }
-            
-            function displayBadges(badges) {
-                if (!badges) return;
+                if (stats.thumbnailUrls && stats.thumbnailUrls.length > 0) {
+                    setupSlideshow(stats.thumbnailUrls);
+                }
 
-                if (isFirstLoad) {
+                if (stats.badges) {
                     badgesContainer.innerHTML = ''; // Clear loader
-                    if (badges.length === 0) {
+                    if (stats.badges.length === 0) {
                         badgesContainer.textContent = 'No badges found for this game.';
                         return;
                     }
-                    badges.forEach(badge => {
+                    stats.badges.forEach(badge => {
                         const badgeEl = document.createElement('div');
                         badgeEl.className = 'badge-item';
                         badgeEl.innerHTML = `
-                            <img src="${badge.iconImageUrl}" alt="${badge.name}">
+                            <img src="${badge.iconImageUrl || 'https://placehold.co/150x150/1e1e1e/e0e0e0?text=Icon'}" alt="${badge.name}">
                             <div class="badge-info">
                                 <div class="name">${badge.name}</div>
                                 <div class="awarded">
@@ -553,9 +548,19 @@
                         `;
                         badgesContainer.appendChild(badgeEl);
                     });
-                } else {
-                    // Update counts on subsequent loads
-                    badges.forEach(badge => {
+                }
+            }
+
+            function updateData(stats) {
+                // Animate the main stats
+                animateValue(document.getElementById('playing-value'), previousStats.playing, stats.playing, 1000);
+                animateValue(document.getElementById('visits-value'), previousStats.visits, stats.visits, 1000);
+                animateValue(document.getElementById('likes-value'), previousStats.upVotes, stats.upVotes, 1000);
+                animateValue(document.getElementById('favorites-value'), previousStats.favoritesCount, stats.favoritesCount, 1000);
+
+                // Animate the badge counts
+                if (stats.badges && previousStats.badges) {
+                    stats.badges.forEach(badge => {
                         const countEl = document.getElementById(`badge-count-${badge.id}`);
                         const prevBadge = previousStats.badges.find(b => b.id === badge.id);
                         if (countEl && prevBadge) {
@@ -568,17 +573,15 @@
             function setupSlideshow(urls) {
                 if (!urls || urls.length === 0) return;
 
-                slideshowContainer.innerHTML = `
-                    <button id="prev-slide" class="slide-btn">❮</button>
-                    <button id="next-slide" class="slide-btn">❯</button>
-                `; 
+                // Clear previous images but keep buttons
+                slideshowContainer.querySelectorAll('.slideshow-image').forEach(img => img.remove());
 
                 urls.forEach((url, index) => {
                     const img = document.createElement('img');
                     img.src = url;
                     img.className = 'slideshow-image';
                     if (index === 0) img.classList.add('active');
-                    slideshowContainer.appendChild(img);
+                    slideshowContainer.insertBefore(img, slideshowContainer.firstChild);
                 });
 
                 let currentSlide = 0;
