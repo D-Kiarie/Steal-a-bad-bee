@@ -209,14 +209,57 @@
             text-align: center;
         }
         
-        .game-thumbnail {
+        /* Slideshow Container */
+        .slideshow-container {
+            position: relative;
             width: 100%;
-            height: auto;
-            min-height: 175px; /* prevent layout shift while loading */
+            aspect-ratio: 16 / 9;
             border-radius: 8px;
-            margin-bottom: 20px;
+            overflow: hidden;
             background-color: var(--bg-light);
+            margin-bottom: 20px;
         }
+
+        .slideshow-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.7s ease-in-out;
+        }
+
+        .slideshow-image.active {
+            opacity: 1;
+        }
+        
+        .slide-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s, opacity 0.3s;
+            opacity: 0;
+        }
+        
+        .slideshow-container:hover .slide-btn {
+            opacity: 1;
+        }
+
+        .slide-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        #prev-slide { left: 15px; }
+        #next-slide { right: 15px; }
 
         .stats-grid {
             display: grid;
@@ -294,8 +337,12 @@
 
             <div class="content-grid">
                 <div class="content-card game-stats-card">
-                    <h3>🎮 Live Game Stats</h3>
-                    <img id="gameThumbnail" src="https://placehold.co/512x512/1e1e1e/e0e0e0?text=Loading..." alt="Game Thumbnail" class="game-thumbnail">
+                    <h3><img id="gameIcon" src="" alt="icon" style="width: 32px; height: 32px; border-radius: 6px;"/> <span id="gameName">Live Game Stats</span></h3>
+                    <div id="slideshow" class="slideshow-container">
+                        <!-- Slides will be injected by JS -->
+                        <button id="prev-slide" class="slide-btn">❮</button>
+                        <button id="next-slide" class="slide-btn">❯</button>
+                    </div>
                     <div id="statsContainer" class="loader">Fetching latest stats...</div>
                 </div>
 
@@ -367,37 +414,34 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Your new, reliable API endpoint
             const apiUrl = 'https://gooner-bot-unified.onrender.com/api/game-stats';
 
             const statsContainer = document.getElementById('statsContainer');
-            const gameThumbnail = document.getElementById('gameThumbnail');
+            const slideshowContainer = document.getElementById('slideshow');
+            const gameIconEl = document.getElementById('gameIcon');
+            const gameNameEl = document.getElementById('gameName');
+
+            let slideInterval;
 
             async function fetchRobloxData() {
                 try {
                     const response = await fetch(apiUrl);
-
                     if (!response.ok) {
-                        const errorData = await response.json();
+                        const errorData = await response.json().catch(() => ({ error: 'API returned a non-JSON error response.' }));
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                     }
-                    
                     const data = await response.json();
-
                     displayStats(data);
-
                 } catch (error) {
-                    statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up.';
+                    statsContainer.innerHTML = 'Failed to load game stats. The API may be starting up or offline.';
                     console.error('Error fetching Roblox data:', error);
                 }
             }
 
             function displayStats(stats) {
-                // Set the thumbnail from the API data
-                if (stats.thumbnailUrl) {
-                    gameThumbnail.src = stats.thumbnailUrl;
-                }
-                
+                if(stats.iconUrl) gameIconEl.src = stats.iconUrl;
+                if(stats.name) gameNameEl.textContent = stats.name;
+
                 const formatNumber = (num) => {
                     if (num === null || num === undefined) return 'N/A';
                     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -425,6 +469,59 @@
                         </div>
                     </div>
                 `;
+                
+                setupSlideshow(stats.thumbnailUrls);
+            }
+
+            function setupSlideshow(urls) {
+                if (!urls || urls.length === 0) return;
+
+                slideshowContainer.innerHTML = `
+                    <button id="prev-slide" class="slide-btn">❮</button>
+                    <button id="next-slide" class="slide-btn">❯</button>
+                `; // Clear previous content but keep buttons
+
+                urls.forEach((url, index) => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.className = 'slideshow-image';
+                    if (index === 0) img.classList.add('active');
+                    slideshowContainer.appendChild(img);
+                });
+
+                let currentSlide = 0;
+                const slides = slideshowContainer.querySelectorAll('.slideshow-image');
+
+                const showSlide = (index) => {
+                    slides.forEach((slide, i) => {
+                        slide.classList.toggle('active', i === index);
+                    });
+                };
+
+                const next = () => {
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    showSlide(currentSlide);
+                };
+
+                const prev = () => {
+                    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                    showSlide(currentSlide);
+                };
+
+                document.getElementById('next-slide').addEventListener('click', () => {
+                    next();
+                    clearInterval(slideInterval); // Reset interval on manual click
+                    slideInterval = setInterval(next, 4000);
+                });
+
+                document.getElementById('prev-slide').addEventListener('click', () => {
+                    prev();
+                    clearInterval(slideInterval); // Reset interval on manual click
+                    slideInterval = setInterval(next, 4000);
+                });
+
+                clearInterval(slideInterval); // Clear any existing interval
+                slideInterval = setInterval(next, 4000); // Start new interval
             }
 
             fetchRobloxData();
