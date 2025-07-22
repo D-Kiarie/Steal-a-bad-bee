@@ -1,252 +1,445 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Steal a Bad Bee - Update To-Do List</title>
-  <style>
-    :root {
-      --bg-dark: #121212;
-      --bg-darker: #0a0a0a;
-      --accent-blue: #1e88e5;
-      --accent-yellow: #ffd600;
-      --text-primary: #e0e0e0;
-      --text-secondary: #b0b0b0;
-      --card-bg: #1e1e1e;
-      --border-color: #333;
-    }
-    
-    body {
-      background-color: var(--bg-dark);
-      font-family: 'Segoe UI', sans-serif;
-      color: var(--text-primary);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    
-    header {
-      background-color: var(--bg-darker);
-      padding: 15px 0;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 25px;
-    }
-    
-    .nav-links a {
-      color: var(--text-primary);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s;
-    }
-    
-    .nav-links a:hover {
-      color: var(--accent-blue);
-    }
-    
-    h1 {
-      text-align: center;
-      color: var(--accent-yellow);
-      margin-top: 30px;
-      font-size: 2.5rem;
-      text-shadow: 0 0 10px rgba(255, 214, 0, 0.3);
-    }
-    
-    .content-card {
-      background-color: var(--card-bg);
-      border-radius: 12px;
-      padding: 25px;
-      margin-top: 30px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--border-color);
-    }
-    
-    h2 {
-      margin-top: 0;
-      color: var(--accent-blue);
-      border-bottom: 2px solid var(--accent-blue);
-      padding-bottom: 8px;
-      font-size: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    ul {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 15px;
-    }
-    
-    li {
-      margin-bottom: 12px;
-      padding-left: 30px;
-      position: relative;
-      line-height: 1.5;
-    }
-    
-    li::before {
-      content: "🐝";
-      position: absolute;
-      left: 0;
-      filter: drop-shadow(0 0 4px rgba(255, 214, 0, 0.5));
-    }
-    
-    .highlight {
-      color: var(--accent-yellow);
-      font-weight: bold;
-      text-shadow: 0 0 8px rgba(255, 214, 0, 0.4);
-    }
-    
-    .note {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-top: -5px;
-      margin-bottom: 15px;
-      padding-left: 30px;
-      font-style: italic;
-    }
-    
-    .bee-icon {
-      font-size: 1.8rem;
-      margin-right: 10px;
-      vertical-align: middle;
-    }
-    
-    footer {
-      text-align: center;
-      margin-top: 40px;
-      padding: 20px;
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      border-top: 1px solid var(--border-color);
-    }
-    
-    @media (max-width: 768px) {
-      .nav-links {
-        gap: 15px;
-        font-size: 0.9rem;
-      }
-      
-      h1 {
-        font-size: 2rem;
-      }
-      
-      .content-card {
-        padding: 15px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steal a Bad Bee - Community Hub</title>
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --bg-light: #1e1e1e;
+            --bg-lighter: #2a2a2a;
+            --accent-blue: #1e88e5;
+            --accent-yellow: #ffd600;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --border-color: #333;
+            --success-color: #4caf50;
+            --danger-color: #f44336;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--bg-light);
+            padding: 15px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s, transform 0.2s;
+            padding-bottom: 5px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            padding-top: 40px;
+        }
+        
+        .welcome-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .welcome-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .play-now-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, var(--accent-yellow), #ffc107);
+            color: #121212;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .play-now-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 214, 0, 0.5);
+        }
+
+        h1, h2 {
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            color: var(--accent-yellow);
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: var(--accent-blue);
+            font-size: 2rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .content-card {
+            background-color: var(--bg-light);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        .content-card h3 {
+            margin-top: 0;
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 8px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 15px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        li::before {
+            content: "🐝";
+            position: absolute;
+            left: 0;
+            top: 0;
+            filter: drop-shadow(0 0 4px rgba(255, 214, 0, 0.5));
+        }
+
+        .note {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: -5px;
+            margin-bottom: 15px;
+            padding-left: 30px;
+            font-style: italic;
+        }
+        
+        .game-stats-card {
+            background-color: var(--bg-lighter);
+            text-align: center;
+        }
+        
+        .game-thumbnail {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: var(--bg-light);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stat-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+        }
+        
+        .stat-item .label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .loader {
+            font-size: 1.2rem;
+            color: var(--accent-yellow);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-light);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            h1 { font-size: 2rem; }
+            .welcome-section { padding: 20px; }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <div class="logo">
-        <span class="bee-icon">🐝</span>
-        <span>Steal a Bad Bee</span>
-      </div>
-      <div class="nav-links">
-        <a href="#">Home</a>
-        <a href="#">Updates</a>
-        <a href="#">Features</a>
-        <a href="#">Community</a>
-        <a href="#">Support</a>
-      </div>
-    </nav>
-  </header>
-  
-  <div class="container">
-    <h1>🐝 Steal a Bad Bee - Update To-Do List</h1>
-    
-    <div class="content-card">
-      <h2><span>🌍</span> Map & World Events</h2>
-      <ul>
-        <li>Update the Map with new regions and biomes</li>
-        <li>Add Blood Moon Event with special mechanics</li>
-        <div class="note">Spawns specific rare or aggressive bees during the event with unique drops</div>
-        <li>Implement dynamic weather system affecting bee behavior</li>
-        <li>Create hidden areas with special challenges</li>
-      </ul>
+    <header>
+        <nav>
+            <div class="logo">
+                <span>🐝 Steal a Bad Bee</span>
+            </div>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#updates">Updates</a>
+                <a href="https://www.roblox.com/games/109333468130056/MERGE-Steal-a-Bad-Bee" target="_blank">Game</a>
+                <a href="https://discord.gg/AYhaXxyf" target="_blank">Community</a>
+                <a href="https://discord.gg/AYhaXxyf" target="_blank">Support</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main class="main-content">
+            <section id="home" class="welcome-section">
+                <img src="https://cdn.discordapp.com/attachments/1374731725539901541/1397193430509158460/New_Project_-_2025-07-20T214137.093.png?ex=6880d548&is=687f83c8&hm=867866abb6eadaa037fc5d3e62533449206614e7cd7cec3c268e59180cd6b77b&" alt="Steal a Bad Bee Welcome Banner" class="welcome-image">
+                <h1>Welcome to the Hive!</h1>
+                <p>Join the adventure, collect the rarest bees, and become the ultimate beekeeper. Check out the live game stats and see what's coming next!</p>
+                <a href="https://www.roblox.com/games/109333468130056/MERGE-Steal-a-Bad-Bee" class="play-now-btn" target="_blank">▶ Play Now on Roblox</a>
+            </section>
+
+            <div class="content-grid">
+                <div class="content-card game-stats-card">
+                    <h3>🎮 Live Game Stats</h3>
+                    <img id="gameThumbnail" src="https://placehold.co/768x432/1e1e1e/e0e0e0?text=Loading..." alt="Game Thumbnail" class="game-thumbnail">
+                    <div id="statsContainer" class="loader">Fetching latest stats...</div>
+                </div>
+
+                <div class="content-card" id="updates">
+                    <h3>🗺️ Map & World Events</h3>
+                    <ul>
+                        <li>Update the Map with new regions and biomes</li>
+                        <li>Add Blood Moon Event with special mechanics</li>
+                        <div class="note">Spawns specific rare or aggressive bees during the event with unique drops</div>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>🐝 Bees & Creatures</h3>
+                    <ul>
+                        <li>Add Exclusive Bee that Survives Rebirths</li>
+                        <li>Balance All Bees Again based on player feedback</li>
+                        <li>Add 3 New Secret Bees with unique abilities</li>
+                        <li>Add Bee Animations and Buzzing Sounds</li>
+                        <li>Add Limited-Time Seasonal Bees</li>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>🔁 Rebirth & Progression</h3>
+                    <ul>
+                        <li>Create More Rebirth Tools with unique effects</li>
+                        <li>Add Quests with Badges for Bonus Honey</li>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>⚙️ Game Systems</h3>
+                    <ul>
+                        <li>Fix Admin Detection for Top 3 Players</li>
+                        <li>Add Codes System for special rewards</li>
+                        <li style="color: var(--accent-yellow);">Implement Live Update System</li>
+                        <div class="note">Like Grow a Garden – updates without shutting down the server</div>
+                        <li>Add player trading system with safeguards</li>
+                        <li>Implement guild/clan system with shared goals</li>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>🎨 Visual & Audio</h3>
+                    <ul>
+                        <li>Create a New Thumbnail with updated branding</li>
+                        <li>Add New Background Music for different biomes</li>
+                        <li>Implement particle effects for special bees</li>
+                    </ul>
+                </div>
+
+                <div class="content-card">
+                    <h3>🤖 Discord Integration</h3>
+                    <ul>
+                        <li>Add Bot Command for Top 100 Honey Leaderboard (Paginated)</li>
+                        <li>Implement role rewards for in-game achievements</li>
+                        <li>Create announcement system for updates</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
     </div>
-    
-    <div class="content-card">
-      <h2><span>🐝</span> Bees & Creatures</h2>
-      <ul>
-        <li>Add Exclusive Bee that Survives Rebirths</li>
-        <li>Balance All Bees Again based on player feedback</li>
-        <li>Add 3 New Secret Bees with unique abilities</li>
-        <li>Add Bee Animations and Buzzing Sounds</li>
-        <li>Add Limited-Time Seasonal Bees</li>
-        <li>Implement bee evolution system</li>
-        <div class="note">Bees can evolve after certain conditions are met</div>
-      </ul>
-    </div>
-    
-    <div class="content-card">
-      <h2><span>🔁</span> Rebirth & Progression</h2>
-      <ul>
-        <li>Create More Rebirth Tools with unique effects</li>
-        <li>Add Quests with Badges for Bonus Honey</li>
-        <li>Implement prestige system with exclusive rewards</li>
-        <li>Add achievement milestones with cosmetic unlocks</li>
-      </ul>
-    </div>
-    
-    <div class="content-card">
-      <h2><span>⚙️</span> Game Systems</h2>
-      <ul>
-        <li>Fix Admin Detection for Top 3 Players</li>
-        <li>Add Codes System for special rewards</li>
-        <li class="highlight">Implement Live Update System</li>
-        <div class="note">Like Grow a Garden – updates without shutting down the server</div>
-        <li>Add player trading system with safeguards</li>
-        <li>Implement guild/clan system with shared goals</li>
-      </ul>
-    </div>
-    
-    <div class="content-card">
-      <h2><span>🎨</span> Visual & Audio</h2>
-      <ul>
-        <li>Create a New Thumbnail with updated branding</li>
-        <li>Add New Background Music for different biomes</li>
-        <li>Implement particle effects for special bees</li>
-        <li>Add day/night cycle visual changes</li>
-      </ul>
-    </div>
-    
-    <div class="content-card">
-      <h2><span>🤖</span> Discord Integration</h2>
-      <ul>
-        <li>Add Bot Command for Top 100 Honey Leaderboard (Paginated)</li>
-        <li>Implement role rewards for in-game achievements</li>
-        <li>Add server status monitoring commands</li>
-        <li>Create announcement system for updates</li>
-      </ul>
-    </div>
-  </div>
-  
-  <footer>
-    <p>© 2023 Steal a Bad Bee | All buzz reserved</p>
-    <p>🐝 Made with honey and stingers 🐝</p>
-  </footer>
+
+    <footer>
+        <p>© 2025 Steal a Bad Bee | All buzz reserved</p>
+        <p>🐝 Made with honey and stingers 🐝</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const universeId = '3621941657';
+            const proxy = 'https://rprxy.xyz'; // Using a different proxy
+            const thumbnailsProxy = 'https://thumbnails.rprxy.xyz';
+
+            const statsContainer = document.getElementById('statsContainer');
+            const gameThumbnail = document.getElementById('gameThumbnail');
+
+            async function fetchRobloxData() {
+                try {
+                    const [gameDetailsRes, favoritesRes, votesRes, thumbnailRes] = await Promise.all([
+                        fetch(`${proxy}/v1/games?universeIds=${universeId}`),
+                        fetch(`${proxy}/v1/games/${universeId}/favorites/count`),
+                        fetch(`${proxy}/v1/games/votes?universeIds=${universeId}`),
+                        fetch(`${thumbnailsProxy}/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
+                    ]);
+
+                    if (!gameDetailsRes.ok || !favoritesRes.ok || !votesRes.ok || !thumbnailRes.ok) {
+                        throw new Error('Network response was not ok for one or more API calls.');
+                    }
+                    
+                    const gameDetails = await gameDetailsRes.json();
+                    const favorites = await favoritesRes.json();
+                    const votes = await votesRes.json();
+                    const thumbnailData = await thumbnailRes.json();
+
+                    const gameData = gameDetails?.data?.[0];
+                    const voteData = votes?.data?.[0];
+                    const favoritesCount = favorites?.favoritesCount;
+                    const thumbnail = thumbnailData?.data?.[0]?.thumbnails?.[0]?.imageUrl;
+                    
+                    if (!gameData || !voteData || thumbnail === undefined || favoritesCount === undefined) {
+                        throw new Error('Failed to parse data from Roblox API response.');
+                    }
+
+                    displayStats(gameData, favoritesCount, voteData, thumbnail);
+
+                } catch (error) {
+                    statsContainer.innerHTML = 'Failed to load game stats. Please try again later.';
+                    console.error('Error fetching Roblox data:', error);
+                }
+            }
+
+            function displayStats(game, favorites, votes, thumbnail) {
+                gameThumbnail.src = thumbnail;
+                
+                const formatNumber = (num) => {
+                    if (num === null || num === undefined) return 'N/A';
+                    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+                    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+                    return num.toString();
+                };
+
+                statsContainer.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="value">${formatNumber(game.playing)}</div>
+                            <div class="label">Playing Now</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${formatNumber(game.visits)}</div>
+                            <div class="label">Total Visits</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value" style="color: var(--success-color);">${formatNumber(votes.upVotes)}</div>
+                            <div class="label">👍 Likes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="value">${formatNumber(favorites)}</div>
+                            <div class="label">⭐ Favorites</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            fetchRobloxData();
+        });
+    </script>
 </body>
 </html>
