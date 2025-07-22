@@ -337,7 +337,7 @@
 
             <div class="content-grid">
                 <div class="content-card game-stats-card">
-                    <h3><img id="gameIcon" src="" alt="icon" style="width: 32px; height: 32px; border-radius: 6px;"/> <span id="gameName">Live Game Stats</span></h3>
+                    <h3><img id="gameIcon" src="" alt="icon" style="width: 48px; height: 48px; border-radius: 8px;"/> <span id="gameName">Live Game Stats</span></h3>
                     <div id="slideshow" class="slideshow-container">
                         <!-- Slides will be injected by JS -->
                         <button id="prev-slide" class="slide-btn">❮</button>
@@ -422,6 +422,8 @@
             const gameNameEl = document.getElementById('gameName');
 
             let slideInterval;
+            let isFirstLoad = true;
+            let previousStats = null;
 
             async function fetchRobloxData() {
                 try {
@@ -438,39 +440,66 @@
                 }
             }
 
+            const formatNumber = (num) => {
+                if (num === null || num === undefined) return 'N/A';
+                return num.toLocaleString();
+            };
+
+            const animateValue = (element, start, end, duration) => {
+                if (start === end) return;
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const currentValue = Math.floor(progress * (end - start) + start);
+                    element.innerHTML = formatNumber(currentValue);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    } else {
+                        element.innerHTML = formatNumber(end); // Ensure it ends on the exact value
+                    }
+                };
+                window.requestAnimationFrame(step);
+            };
+
             function displayStats(stats) {
                 if(stats.iconUrl) gameIconEl.src = stats.iconUrl;
                 if(stats.name) gameNameEl.textContent = stats.name;
 
-                const formatNumber = (num) => {
-                    if (num === null || num === undefined) return 'N/A';
-                    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-                    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-                    return num.toString();
-                };
-
-                statsContainer.innerHTML = `
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="value">${formatNumber(stats.playing)}</div>
-                            <div class="label">Playing Now</div>
+                if (isFirstLoad) {
+                    statsContainer.innerHTML = `
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="value" id="playing-value">${formatNumber(stats.playing)}</div>
+                                <div class="label">Playing Now</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value" id="visits-value">${formatNumber(stats.visits)}</div>
+                                <div class="label">Total Visits</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value" id="likes-value" style="color: var(--success-color);">${formatNumber(stats.upVotes)}</div>
+                                <div class="label">👍 Likes</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="value" id="favorites-value">${formatNumber(stats.favoritesCount)}</div>
+                                <div class="label">⭐ Favorites</div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <div class="value">${formatNumber(stats.visits)}</div>
-                            <div class="label">Total Visits</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="value" style="color: var(--success-color);">${formatNumber(stats.upVotes)}</div>
-                            <div class="label">👍 Likes</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="value">${formatNumber(stats.favoritesCount)}</div>
-                            <div class="label">⭐ Favorites</div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                    if (stats.thumbnailUrls && stats.thumbnailUrls.length > 0) {
+                        setupSlideshow(stats.thumbnailUrls);
+                    }
+                    isFirstLoad = false;
+                } else {
+                    // Animate the values on subsequent updates
+                    animateValue(document.getElementById('playing-value'), previousStats.playing, stats.playing, 1000);
+                    animateValue(document.getElementById('visits-value'), previousStats.visits, stats.visits, 1000);
+                    animateValue(document.getElementById('likes-value'), previousStats.upVotes, stats.upVotes, 1000);
+                    animateValue(document.getElementById('favorites-value'), previousStats.favoritesCount, stats.favoritesCount, 1000);
+                }
                 
-                setupSlideshow(stats.thumbnailUrls);
+                previousStats = stats;
             }
 
             function setupSlideshow(urls) {
@@ -479,7 +508,7 @@
                 slideshowContainer.innerHTML = `
                     <button id="prev-slide" class="slide-btn">❮</button>
                     <button id="next-slide" class="slide-btn">❯</button>
-                `; // Clear previous content but keep buttons
+                `; 
 
                 urls.forEach((url, index) => {
                     const img = document.createElement('img');
@@ -510,21 +539,23 @@
 
                 document.getElementById('next-slide').addEventListener('click', () => {
                     next();
-                    clearInterval(slideInterval); // Reset interval on manual click
+                    clearInterval(slideInterval);
                     slideInterval = setInterval(next, 4000);
                 });
 
                 document.getElementById('prev-slide').addEventListener('click', () => {
                     prev();
-                    clearInterval(slideInterval); // Reset interval on manual click
+                    clearInterval(slideInterval);
                     slideInterval = setInterval(next, 4000);
                 });
 
-                clearInterval(slideInterval); // Clear any existing interval
-                slideInterval = setInterval(next, 4000); // Start new interval
+                clearInterval(slideInterval);
+                slideInterval = setInterval(next, 4000);
             }
 
+            // Fetch data immediately on load, then set an interval to fetch it every 5 seconds
             fetchRobloxData();
+            setInterval(fetchRobloxData, 5000);
         });
     </script>
 </body>
