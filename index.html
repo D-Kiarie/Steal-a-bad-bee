@@ -365,8 +365,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const universeId = '3621941657';
-            const proxy = 'https://rprxy.xyz'; // Using a different proxy
-            const thumbnailsProxy = 'https://thumbnails.rprxy.xyz';
+            // Using a public CORS proxy that is more likely to work from any domain
+            const corsProxy = 'https://cors-anywhere.herokuapp.com/';
 
             const statsContainer = document.getElementById('statsContainer');
             const gameThumbnail = document.getElementById('gameThumbnail');
@@ -374,10 +374,10 @@
             async function fetchRobloxData() {
                 try {
                     const [gameDetailsRes, favoritesRes, votesRes, thumbnailRes] = await Promise.all([
-                        fetch(`${proxy}/v1/games?universeIds=${universeId}`),
-                        fetch(`${proxy}/v1/games/${universeId}/favorites/count`),
-                        fetch(`${proxy}/v1/games/votes?universeIds=${universeId}`),
-                        fetch(`${thumbnailsProxy}/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
+                        fetch(`${corsProxy}https://games.roblox.com/v1/games?universeIds=${universeId}`),
+                        fetch(`${corsProxy}https://games.roblox.com/v1/games/${universeId}/favorites/count`),
+                        fetch(`${corsProxy}https://games.roblox.com/v1/games/votes?universeIds=${universeId}`),
+                        fetch(`${corsProxy}https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=${universeId}&size=768x432&format=Png&isCircular=false`)
                     ]);
 
                     if (!gameDetailsRes.ok || !favoritesRes.ok || !votesRes.ok || !thumbnailRes.ok) {
@@ -389,12 +389,12 @@
                     const votes = await votesRes.json();
                     const thumbnailData = await thumbnailRes.json();
 
-                    const gameData = gameDetails?.data?.[0];
-                    const voteData = votes?.data?.[0];
-                    const favoritesCount = favorites?.favoritesCount;
-                    const thumbnail = thumbnailData?.data?.[0]?.thumbnails?.[0]?.imageUrl;
+                    const gameData = gameDetails && gameDetails.data && gameDetails.data[0];
+                    const voteData = votes && votes.data && votes.data[0];
+                    const favoritesCount = favorites && favorites.favoritesCount;
+                    const thumbnail = thumbnailData && thumbnailData.data && thumbnailData.data[0] && thumbnailData.data[0].thumbnails && thumbnailData.data[0].thumbnails[0] && thumbnailData.data[0].thumbnails[0].imageUrl;
                     
-                    if (!gameData || !voteData || thumbnail === undefined || favoritesCount === undefined) {
+                    if (!gameData || !voteData || !thumbnail || favoritesCount === undefined) {
                         throw new Error('Failed to parse data from Roblox API response.');
                     }
 
@@ -411,8 +411,8 @@
                 
                 const formatNumber = (num) => {
                     if (num === null || num === undefined) return 'N/A';
-                    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
-                    if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+                    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+                    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
                     return num.toString();
                 };
 
