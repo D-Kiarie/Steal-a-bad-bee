@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Steal a Bad Bee - Community Hub</title>
+    <title>SABB - Community Hub</title>
+    <link id="favicon" rel="icon" href="">
     <style>
         :root {
             --bg-dark: #121212;
@@ -188,7 +189,7 @@
         }
 
         li::before {
-            content: "�";
+            content: "🐝";
             position: absolute;
             left: 0;
             top: 0;
@@ -355,7 +356,7 @@
         <nav>
             <div class="logo">
                 <img id="headerIcon" src="" alt="SABB Icon" style="width: 32px; height: 32px; border-radius: 6px; margin-right: 10px;"/>
-                <span>SABB</span>
+                <span>Steal a Bad Bee Hub</span>
             </div>
             <div class="nav-links">
                 <a href="#home">Home</a>
@@ -447,6 +448,7 @@
             const slideshowContainer = document.getElementById('slideshow');
             const gameIconEl = document.getElementById('gameIcon');
             const headerIconEl = document.getElementById('headerIcon');
+            const faviconEl = document.getElementById('favicon');
             const gameNameEl = document.getElementById('gameName');
             const badgesContainer = document.getElementById('badges-container');
 
@@ -505,6 +507,7 @@
                 if(stats.iconUrl) {
                     gameIconEl.src = stats.iconUrl;
                     headerIconEl.src = stats.iconUrl;
+                    faviconEl.href = stats.iconUrl;
                 }
                 if(stats.name) gameNameEl.textContent = stats.name;
 
@@ -630,4 +633,3 @@
     </script>
 </body>
 </html>
-�
